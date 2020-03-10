@@ -2,11 +2,11 @@
   <div class='page_container'>
     <section class="el-container">
       <aside class="el-aside" style="width: 200px;">
-        <dl-aside></dl-aside>
+        <dl-aside :roomList="roomList" @changeRoom="changeRoom"></dl-aside>
       </aside> 
       
       <main class="el-main">
-        <dl-main></dl-main>
+        <dl-main :roomName="currentRoom.name" :chatRecord="chatRecord" @sendMessage="sendMessage"></dl-main>
       </main>
     </section>
   </div>
@@ -23,30 +23,86 @@ export default {
   },
   data() {
     return{
-      data: [1]
+      currentRoom: {
+        name: 'Saloon',
+        unread: 0
+      },
+      roomList: [{
+        name: 'Saloon',
+        unread: 0
+      }],
+      chatRecord: [],
+      socket: null,
+      socketId: null
+    }
+  },
+  created() {
+    if (!this.$store.state.token) {
+      this.$store.commit('refreshLoginMessage')
     }
   },
   mounted() {
-    this.$socket.connect()
-    // this.$socket.on('connect', () => {
-    //   console.log('链接成功')
-    //   this.$socket.emit('user', { name: '张三' })
-    //   // this.$socket.emit("clientmessage", "发送内容") 
-    // });
+    this.connectSocket()
   },
   methods: {
+    // socket链接
+    connectSocket() {
+      this.socket = IO.connect(this.$store.state.socketUrl)
 
-  },
-  sockets: {
-    connect() {
-      console.log('链接成功')
-      this.$socket.emit('user', { name: '张三' })
+      this.socket.on('connect', () => {
+        this.socketId = this.socket.id
+        this.socket.emit('user', this.$store.getters.userLoginMessage);
+
+        this.socket.on('message', this.gettingMessage);
+
+        this.socket.on('news', this.gettingNews);
+
+        this.socket.on('unAuthority', this.unAuthority);
+      });
     },
-    news(val) {
-      console.log(val)
+    // 切换聊天室
+    changeRoom(room) {
+      this.currentRoom = Object.assign(this.currentRoom, room)
+      // 刷新房间聊天记录
+      // 。。。。
     },
-    mssages(val) {
-      console.log(val)
+    // 发送信息
+    sendMessage(news) {
+      const send = {
+        from: this.$store.getters.userInfo,
+        room: this.currentRoom.name,
+        news: news,
+        type: 'user'
+      }
+      this.chatRecord.push(send)
+      this.socket.emit('send', send)
+    },
+    // 接收服务端消息
+    gettingMessage(data) {
+      console.log(data)
+      this.$message({
+        type: data.type,
+        message: data.message
+      })
+    },
+    // 接收聊天消息
+    gettingNews(data) {
+      if (data.room === this.currentRoom.name) return this.chatRecord.push(send)
+      this.roomList = this.roomList.map(item => {
+        if (item.name === data.room) item.unread++
+        return item
+      })
+    },
+    // 未知身份，重新登陆
+    unAuthority(flag) {
+      if(flag) {
+        this.$store.commit('clearCurrentUser')
+        this.socket.disconnect()
+        this.$message.error('未知身份，请重新登陆')
+        setTimeout(() => {
+          this.$router.push('/')
+        }, 1000)
+      }
     }
   }
 }
@@ -64,8 +120,8 @@ export default {
   height: 600px;
   padding-left: 10px;
   margin: 100px auto;
-  border: 1px solid #eee;
-  border-radius: 5px;
+  border-radius: 10px;
+  overflow: hidden;
   box-shadow: 0 0 10px #ccc;
   /* background-color: #fff; */
   background-color: #f3f3f3;

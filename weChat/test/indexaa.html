@@ -4,28 +4,62 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Document</title>
+  <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
 </head>
 <body>
-  <input type="text" id="input">
-  <button id="btn">发送</button>
+  <div id="app">
+    <input type="text" id="input">
+    <button id="btn" >发送</button>
+  </div>
 </body>
+<script src="https://unpkg.com/vue/dist/vue.js"></script>
+<!-- import JavaScript -->
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
 <script src="./socket.io.js"></script>
 <script>
-  const btn = document.querySelector('#btn');
-  const input = document.querySelector('#input');
+  new Vue({
+    el: '#app',
+    data: function() {
+      return { 
+        btn: undefined,
+        input: undefined,
+        socket: undefined
+      }
+    },
+    mounted() {
+      this.btn = document.querySelector('#btn');
+      this.input = document.querySelector('#input');
+    },
+    methods: {
+      connect() {
+        this.socket = io.connect('http://192.168.6.86:3000');
 
-  const socket = io.connect('http://localhost:3000');
-  socket.on('connect', function () {
-    console.log('链接成功')
-    socket.emit('user', { name: '张三' });
-    
-    btn.onclick = function() {
-      socket.emit('send', { to: '李四', from: '张三', message: input.value });
+        this.socket.on('connect', function () {
+          console.log('链接成功')
+          this.socket.emit('user', { niceName: '张三', phoneNumber: 18860905220 });
+          
+          this.btn.addEventListener('click', this.send)
+
+          this.socket.on('news', function (data) {
+            console.log(data.news);
+          });
+          this.socket.on('message', data => {
+            console.log(data.message)
+          });
+        })
+      },
+      send() {
+        this.socket.emit('send', { 
+          from: { 
+            niceName: '张三', 
+            phoneNumber: 18860905220 
+          }, 
+          room: 'Saloon',
+          news: input.value,
+          type: 'user' 
+        });
+      }
     }
-  });
-  socket.on('news', function (data) {
-    console.log(data);
-    // socket.emit('my other event', { my: 'data' });
-  });
+  })
 </script>
 </html>

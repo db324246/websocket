@@ -10,7 +10,24 @@ module.exports = {
     // Paths
     assetsSubDirectory: 'static',
     assetsPublicPath: '/',
-    proxyTable: {},
+    proxyTable: {
+      '/api': {
+        target: 'http://192.168.6.86:3000',  //目标接口域名
+        ws: false,
+        changeOrigin: true,  //是否跨域
+        pathRewrite: {
+          '^/api': ''   //重写接口
+        }
+      },
+      '/socket.io': {
+        target: 'http://192.168.6.86:3000',  //目标接口域名
+        ws: true,
+        changeOrigin: true,  //是否跨域
+        pathRewrite: {
+          '^/socket.io': 'socket.io'   //重写接口
+        }
+      }
+    },
 
     // Various Dev Server settings
     host: 'localhost', // can be overwritten by process.env.HOST
