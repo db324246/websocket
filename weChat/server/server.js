@@ -41,24 +41,26 @@ const users = [];
 io.on('connection', socket => {
   console.log(`knock! knock! 有人敲门~`)
   socket.on('user', user => {
-    if (!user.userInfo) {
+    if (!user || !JSON.stringify(user) === '{}') {
       io.to(socket.client.id).emit('unAuthority', '1232')
       return
     }
 
-    const onLineFlag = users.some(item => item.clientId === socket.client.id)
+    const onLineFlag = users.some(item => item.socketId === socket.id)
+
     if (!onLineFlag) {
       users.push({
         nickName: user.userInfo.nickName,
         phoneNumber: user.userInfo.nickName,
         token: user.token,
-        clientId: socket.client.id
+        socketId: socket.id
       })
       io.to(socket.client.id).emit('message', {
         type: 'success',
         message: '连接成功'
       })
 
+      // 发送服务端消息
       socket.broadcast.emit('message', {
         type: 'info',
         message: `${user.userInfo.nickName}已上线`
@@ -77,8 +79,9 @@ io.on('connection', socket => {
     });
   })
   
+  
   socket.on('send', send => {
     console.log(send)
-    socket.to(send.room).emit('news', send.news)
+    socket.to(send.room).emit('news', send)
   })
 })

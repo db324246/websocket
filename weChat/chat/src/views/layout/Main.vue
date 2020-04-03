@@ -68,13 +68,11 @@ export default {
   },
   mounted() {
     this.chatContentBox = document.querySelector('#chatContentBox')
-    console.log(this.chatContentBox)
   },
   methods: {
     sendMessage() {
       const value = this.chatContentBox.innerText
       this.chatContentBox.innerText = ''
-      console.log(value)
       this.$emit('sendMessage', value)
     },
     checkUser(user) {

@@ -29,35 +29,50 @@
     mounted() {
       this.btn = document.querySelector('#btn');
       this.input = document.querySelector('#input');
+      this.connect()
     },
     methods: {
       connect() {
         this.socket = io.connect('http://192.168.6.86:3000');
 
-        this.socket.on('connect', function () {
+        this.socket.on('connect', () => {
           console.log('链接成功')
-          this.socket.emit('user', { niceName: '张三', phoneNumber: 18860905220 });
+          this.socket.emit('user', {nickName: '张三', phoneNumber: 16621380331});
           
           this.btn.addEventListener('click', this.send)
 
-          this.socket.on('news', function (data) {
-            console.log(data.news);
-          });
+          this.socket.on('news', this.gettingNews);
+          this.socket.on('unAuthority', this.unAuthority);
           this.socket.on('message', data => {
             console.log(data.message)
           });
         })
       },
+      // 接收聊天消息
+      gettingNews(data) {
+        console.log(data)
+      },
       send() {
         this.socket.emit('send', { 
           from: { 
-            niceName: '张三', 
+            nickName: '张三', 
             phoneNumber: 18860905220 
           }, 
           room: 'Saloon',
           news: input.value,
           type: 'user' 
         });
+      },
+      // 未知身份，重新登陆
+      unAuthority(flag) {
+        if(flag) {
+          // this.$store.commit('clearCurrentUser')
+          this.socket.disconnect()
+          this.$message.error('未知身份，请重新登陆')
+          // setTimeout(() => {
+          //   this.$router.push('/')
+          // }, 1000)
+        }
       }
     }
   })

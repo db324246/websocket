@@ -79,7 +79,6 @@ export default {
     },
     // 接收服务端消息
     gettingMessage(data) {
-      console.log(data)
       this.$message({
         type: data.type,
         message: data.message
@@ -87,7 +86,7 @@ export default {
     },
     // 接收聊天消息
     gettingNews(data) {
-      if (data.room === this.currentRoom.name) return this.chatRecord.push(send)
+      if (data.room === this.currentRoom.name) return this.chatRecord.push(data)
       this.roomList = this.roomList.map(item => {
         if (item.name === data.room) item.unread++
         return item
