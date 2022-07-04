@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    #drawBox {
+      margin: 50px auto;
+    }
+  </style>
+</head>
+<body>
+  <div id="drawBox"></div>
+</body>
+<script src="./draw.js"></script>
+<script>
+  const ws = new WebSocket('ws://192.168.6.46:3000')
+  const dlDraw = new DlDraw({
+    el: '#drawBox',
+    width: 800,
+    height: 500,
+    colorDiskX: 550
+  })
+  // 开始绘画回调
+  dlDraw.startDrawing = function(x, y, ctx) {
+    console.log(x, y, ctx)
+  }
+  ws.onmessage = function (data) {
+    console.log(data)
+  }
+  
+  ws.onerror = function (error) {
+    console.log(error)
+  }
+  
+  ws.onclose = function (data) {
+    console.log(data)
+  }
+  ws.onopen = function (data) {
+    console.log(data)
+    ws.send(JSON.stringify({
+      name: '张三',
+      age: 18
+    }))
+  }
+</script>
+</html>
